@@ -12,8 +12,6 @@ jobs:
     steps:
       - name: Checkout RSDKv5
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Checkout Sonic Mania Decompilation
         uses: actions/checkout@v4
@@ -28,11 +26,15 @@ jobs:
           ln -s "$PWD" "$PWD/Sonic-Mania-Decompilation/dependencies/RSDKv5"
           ln -s "$PWD/Sonic-Mania-Decompilation" "$PWD/Game"
 
-      - name: Build iOS App
+      - name: List Xcode Schemes & Build iOS App
         run: |
+          xcodebuild -list -project RSDKv5.xcodeproj
+          SCHEME=$(xcodebuild -list -project RSDKv5.xcodeproj | awk '/Schemes:/{flag=1;next}/^$/{flag=0}flag' | grep -i "ios" | head -n 1 | xargs)
+          if [ -z "$SCHEME" ]; then SCHEME="RSDKv5"; fi
+          echo "Using scheme: $SCHEME"
           xcodebuild \
             -project RSDKv5.xcodeproj \
-            -scheme RSDKv5 \
+            -scheme "$SCHEME" \
             -configuration Release \
             -sdk iphoneos \
             -derivedDataPath build \
